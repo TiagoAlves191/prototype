@@ -19,7 +19,7 @@
             position: absolute;
             top: 10px;
             left: 20px;
-            width: 150px;
+            width: 120px;
             z-index: 10;
             filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
         }
@@ -31,17 +31,16 @@
             background: linear-gradient(45deg, #ff416c, #ff4b2b);
             color: white;
             border: none;
-            padding: 15px 30px;
+            padding: 10px 20px;
             border-radius: 30px;
             cursor: pointer;
             z-index: 10;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, box-shadow 0.2s;
+            font-size: 14px;
         }
 
         #voice-search-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
         }
 
         #voice-search-suggestions {
@@ -49,15 +48,12 @@
             top: 70px;
             right: 20px;
             background: rgba(0, 0, 0, 0.8);
-            padding: 15px;
+            padding: 10px;
             border-radius: 10px;
             display: none;
             z-index: 10;
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-        }
-
-        #voice-search-suggestions p {
-            margin: 5px 0;
+            font-size: 12px;
         }
 
         #info-modal {
@@ -87,17 +83,11 @@
             padding: 20px;
             border-radius: 10px;
             margin: 10px 0;
-            width: 80%;
+            width: 90%;
             max-width: 500px;
             text-align: center;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
             border: 2px solid rgba(255, 255, 255, 0.3);
-            transition: transform 0.3s, border-color 0.3s;
-        }
-
-        #info-modal .content-box:hover {
-            transform: scale(1.05);
-            border-color: #ff416c;
         }
 
         #info-modal .close-btn {
@@ -107,12 +97,6 @@
             border-radius: 20px;
             color: white;
             cursor: pointer;
-            margin-top: 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-        }
-
-        #info-modal .close-btn:hover {
-            background: #ff4b2b;
         }
 
         .cube-label {
@@ -121,7 +105,7 @@
             font-weight: bold;
             text-shadow: 0 0 5px black;
             pointer-events: none;
-            font-size: 1.1rem;
+            font-size: 0.9rem;
         }
 
         canvas {
@@ -144,32 +128,54 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            gap: 20px;
+            gap: 10px;
             background: rgba(0, 0, 0, 0.7);
-            padding: 10px 20px;
+            padding: 10px;
             border-radius: 20px;
             z-index: 10;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            font-size: 12px;
+            flex-wrap: wrap;
         }
 
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 5px;
             color: white;
         }
 
         .legend-color {
-            width: 20px;
-            height: 20px;
+            width: 15px;
+            height: 15px;
             border-radius: 50%;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            #voice-search-btn {
+                padding: 8px 15px;
+                font-size: 12px;
+            }
+
+            #legend {
+                flex-direction: column;
+                align-items: center;
+                padding: 5px;
+            }
+
+            .cube-label {
+                font-size: 0.7rem;
+            }
+
+            #info-modal .content-box {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <img id="logo" src="logo.png" alt="Logo">
-    <button id="voice-search-btn" onclick="startVoiceSearch()">🔊 Pesquisar por Voz</button>
+    <button id="voice-search-btn" onclick="startVoiceSearch()">🔊 Pesquisar</button>
     <div id="voice-search-suggestions">
         <p><strong>Recomendações:</strong></p>
         <p>- Quem Somos</p>
@@ -182,7 +188,6 @@
         <div id="modal-description"></div>
         <button class="close-btn" onclick="closeModal()">Fechar</button>
     </div>
-
     <div id="legend">
         <div class="legend-item">
             <div class="legend-color" style="background-color: #e74c3c;"></div>
@@ -197,7 +202,6 @@
             <span>Contactos</span>
         </div>
     </div>
-
     <script>
         let scene, camera, renderer, objects = [];
         const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
@@ -217,29 +221,26 @@
             light.position.set(10, 10, 10);
             scene.add(light);
 
-            createCubes();
+            createSquares();
             createParticles();
             animate();
 
             document.addEventListener('pointerdown', onObjectClick);
         }
 
-        function createCubes() {
+        function createSquares() {
             const geometry = new THREE.BoxGeometry(1, 1, 1);
             const materials = [
                 new THREE.MeshStandardMaterial({ color: 0xe74c3c }),
                 new THREE.MeshStandardMaterial({ color: 0x3498db }),
                 new THREE.MeshStandardMaterial({ color: 0x1abc9c })
             ];
-
-            const isMobile = window.innerWidth <= 768;
-            const positions = isMobile ? [2, 0, -2] : [-2, 0, 2];
-            const axis = isMobile ? "y" : "x";
+            const positions = [-2, 0, 2];
             const names = ['quem-somos', 'servicos', 'contactos'];
 
             for (let i = 0; i < 3; i++) {
                 const cube = new THREE.Mesh(geometry, materials[i]);
-                cube.position[axis] = positions[i];
+                cube.position.x = positions[i];
                 cube.name = names[i];
                 objects.push(cube);
                 scene.add(cube);
@@ -252,44 +253,99 @@
             }
         }
 
+        function createParticles() {
+            particlesJS("particles", {
+                particles: {
+                    number: { value: 100 },
+                    color: { value: "#ffffff" },
+                    shape: { type: "circle" },
+                    opacity: { value: 0.5 },
+                    size: { value: 3 },
+                    line_linked: { enable: true, color: "#ffffff", opacity: 0.4 },
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: false,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
+                },
+                interactivity: {
+                    detect_on: "canvas",
+                    events: {
+                        onhover: { enable: true, mode: "repulse" },
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    },
+                    modes: {
+                        repulse: { distance: 100, duration: 0.4 },
+                        push: { particles_nb: 4 }
+                    }
+                },
+                retina_detect: true
+            });
+        }
+
         function animate() {
             requestAnimationFrame(animate);
+
+            objects.forEach(cube => {
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+
+                const label = document.getElementById(`${cube.name}-label`);
+                const vector = new THREE.Vector3(cube.position.x, cube.position.y, cube.position.z);
+                vector.project(camera);
+
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+
+                label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
+            });
+
             renderer.render(scene, camera);
         }
 
         function onObjectClick(event) {
-            const pointer = new THREE.Vector2(
+            const mouse = new THREE.Vector2(
                 (event.clientX / window.innerWidth) * 2 - 1,
                 -(event.clientY / window.innerHeight) * 2 + 1
             );
 
             const raycaster = new THREE.Raycaster();
-            raycaster.setFromCamera(pointer, camera);
+            raycaster.setFromCamera(mouse, camera);
 
             const intersects = raycaster.intersectObjects(objects);
 
             if (intersects.length > 0) {
-                openModal(intersects[0].object.name);
+                const name = intersects[0].object.name;
+                showInfo(name);
             }
         }
 
-        function openModal(name) {
+        function showInfo(name) {
             const modal = document.getElementById('info-modal');
             const title = document.getElementById('modal-title');
             const description = document.getElementById('modal-description');
 
-            if (name === 'quem-somos') {
-                title.innerText = "Quem Somos";
-                description.innerText = "Informações sobre nós...";
-            } else if (name === 'servicos') {
-                title.innerText = "Serviços";
-                description.innerText = "Informações sobre os serviços...";
-            } else if (name === 'contactos') {
-                title.innerText = "Contactos";
-                description.innerText = "Informações sobre os contactos...";
-            }
-
             modal.style.display = 'flex';
+
+            switch (name) {
+                case 'quem-somos':
+                    title.innerText = 'Quem Somos';
+                    description.innerHTML = '<p>Descrição sobre Quem Somos.</p>';
+                    break;
+                case 'servicos':
+                    title.innerText = 'Serviços';
+                    description.innerHTML = '<p>Descrição sobre Serviços.</p>';
+                    break;
+                case 'contactos':
+                    title.innerText = 'Contactos';
+                    description.innerHTML = '<p>Descrição sobre Contactos.</p>';
+                    break;
+            }
         }
 
         function closeModal() {
@@ -297,81 +353,28 @@
             modal.style.display = 'none';
         }
 
-        function createParticles() {
-            particlesJS("particles", {
-                particles: {
-                    number: { value: 80, density: { enable: true, value_area: 800 } },
-                    color: { value: "#ffffff" },
-                    shape: {
-                        type: "circle",
-                        stroke: { width: 0, color: "#000000" },
-                        polygon: { nb_sides: 5 },
-                    },
-                    opacity: {
-                        value: 0.5,
-                        random: false,
-                        anim: { enable: false, speed: 1, opacity_min: 0.1, sync: false },
-                    },
-                    size: {
-                        value: 3,
-                        random: true,
-                        anim: { enable: false, speed: 40, size_min: 0.1, sync: false },
-                    },
-                    line_linked: {
-                        enable: true,
-                        distance: 150,
-                        color: "#ffffff",
-                        opacity: 0.4,
-                        width: 1,
-                    },
-                    move: {
-                        enable: true,
-                        speed: 6,
-                        direction: "none",
-                        random: false,
-                        straight: false,
-                        out_mode: "out",
-                        bounce: false,
-                        attract: { enable: false, rotateX: 600, rotateY: 1200 },
-                    },
-                },
-                interactivity: {
-                    detect_on: "canvas",
-                    events: {
-                        onhover: { enable: true, mode: "repulse" },
-                        onclick: { enable: true, mode: "push" },
-                        resize: true,
-                    },
-                    modes: {
-                        grab: { distance: 400, line_linked: { opacity: 1 } },
-                        bubble: { distance: 400, size: 40, duration: 2, opacity: 8, speed: 3 },
-                        repulse: { distance: 200, duration: 0.4 },
-                        push: { particles_nb: 4 },
-                        remove: { particles_nb: 2 },
-                    },
-                },
-                retina_detect: true,
-            });
-        }
-
         function startVoiceSearch() {
-            const suggestions = document.getElementById('voice-search-suggestions');
-            suggestions.style.display = 'block';
-
             recognition.start();
-            recognition.onresult = function (event) {
-                const transcript = event.results[0][0].transcript.toLowerCase();
-                if (transcript.includes("quem somos")) openModal("quem-somos");
-                else if (transcript.includes("serviços")) openModal("servicos");
-                else if (transcript.includes("contactos")) openModal("contactos");
-            };
 
-            recognition.onspeechend = function () {
-                recognition.stop();
+            recognition.onresult = event => {
+                const transcript = event.results[0][0].transcript.toLowerCase();
+                if (transcript.includes('quem somos')) {
+                    showInfo('quem-somos');
+                } else if (transcript.includes('serviços')) {
+                    showInfo('servicos');
+                } else if (transcript.includes('contactos')) {
+                    showInfo('contactos');
+                }
             };
         }
 
-        window.onload = init;
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        init();
     </script>
 </body>
 </html>
