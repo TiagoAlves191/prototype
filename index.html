@@ -8,7 +8,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
             overflow: hidden;
             background: linear-gradient(135deg, #1e3c72, #2a5298);
@@ -21,6 +21,7 @@
             left: 20px;
             width: 150px;
             z-index: 10;
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.5));
         }
 
         #voice-search-btn {
@@ -34,6 +35,13 @@
             border-radius: 30px;
             cursor: pointer;
             z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #voice-search-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
         }
 
         #voice-search-suggestions {
@@ -45,6 +53,7 @@
             border-radius: 10px;
             display: none;
             z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
 
         #voice-search-suggestions p {
@@ -81,12 +90,14 @@
             width: 80%;
             max-width: 500px;
             text-align: center;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: transform 0.3s, border-color 0.3s;
         }
 
-        #info-modal .content-box h3 {
-            margin-bottom: 10px;
-            color: #00f260;
+        #info-modal .content-box:hover {
+            transform: scale(1.05);
+            border-color: #ff416c;
         }
 
         #info-modal .close-btn {
@@ -97,6 +108,20 @@
             color: white;
             cursor: pointer;
             margin-top: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #info-modal .close-btn:hover {
+            background: #ff4b2b;
+        }
+
+        .cube-label {
+            position: absolute;
+            color: white;
+            font-weight: bold;
+            text-shadow: 0 0 5px black;
+            pointer-events: none;
+            font-size: 1.1rem;
         }
 
         canvas {
@@ -111,6 +136,34 @@
             height: 100%;
             pointer-events: none;
             z-index: 1;
+        }
+
+        #legend {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 20px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 20px;
+            border-radius: 20px;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
     </style>
 </head>
@@ -128,6 +181,21 @@
         <h2 id="modal-title"></h2>
         <div id="modal-description"></div>
         <button class="close-btn" onclick="closeModal()">Fechar</button>
+    </div>
+    
+    <div id="legend">
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #e74c3c;"></div>
+            <span>Quem Somos</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #3498db;"></div>
+            <span>Serviços</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background-color: #1abc9c;"></div>
+            <span>Contactos</span>
+        </div>
     </div>
 
     <script>
@@ -172,6 +240,12 @@
                 cube.name = names[i];
                 objects.push(cube);
                 scene.add(cube);
+
+                const label = document.createElement('div');
+                label.className = 'cube-label';
+                label.id = `${names[i]}-label`;
+                label.innerText = names[i].replace('-', ' ').toUpperCase();
+                document.body.appendChild(label);
             }
         }
 
@@ -184,23 +258,49 @@
                     opacity: { value: 0.5 },
                     size: { value: 3 },
                     line_linked: { enable: true, color: "#ffffff", opacity: 0.4 },
-                    move: { enable: true, speed: 2 }
+                    move: {
+                        enable: true,
+                        speed: 2,
+                        direction: "none",
+                        random: false,
+                        straight: false,
+                        out_mode: "out",
+                        bounce: false
+                    }
                 },
                 interactivity: {
+                    detect_on: "canvas",
                     events: {
                         onhover: { enable: true, mode: "repulse" },
-                        onclick: { enable: true, mode: "push" }
+                        onclick: { enable: true, mode: "push" },
+                        resize: true
+                    },
+                    modes: {
+                        repulse: { distance: 100, duration: 0.4 },
+                        push: { particles_nb: 4 }
                     }
-                }
+                },
+                retina_detect: true
             });
         }
 
         function animate() {
             requestAnimationFrame(animate);
-            objects.forEach(obj => {
-                obj.rotation.x += 0.01;
-                obj.rotation.y += 0.01;
+
+            objects.forEach((cube, index) => {
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+
+                const label = document.getElementById(`${cube.name}-label`);
+                const vector = new THREE.Vector3(cube.position.x, cube.position.y, cube.position.z);
+                vector.project(camera);
+
+                const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+                const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+
+                label.style.transform = `translate(-50%, -50%) translate(${x}px, ${y}px)`;
             });
+
             renderer.render(scene, camera);
         }
 
@@ -214,70 +314,61 @@
             raycaster.setFromCamera(mouse, camera);
 
             const intersects = raycaster.intersectObjects(objects);
+
             if (intersects.length > 0) {
-                displayModal(intersects[0].object.name);
+                const name = intersects[0].object.name;
+                showInfo(name);
             }
         }
 
-        function displayModal(name) {
+        function showInfo(name) {
             const modal = document.getElementById('info-modal');
             const title = document.getElementById('modal-title');
             const description = document.getElementById('modal-description');
 
-            description.innerHTML = ""; // Clear previous content
+            modal.style.display = 'flex';
 
-            if (name === 'quem-somos') {
-                title.textContent = "Quem Somos";
-                description.innerHTML = "<div class='content-box'><p>Conheça nossa equipe e nossa história.</p></div>";
-            } else if (name === 'servicos') {
-                title.textContent = "Serviços";
-                description.innerHTML = `
-                    <div class='content-box'>
-                        <h3>Pacote Básico</h3>
-                        <p>Serviços essenciais para começar sua jornada digital.</p>
-                    </div>
-                    <div class='content-box'>
-                                                <h3>Pacote Avançado</h3>
-                        <p>Um pacote completo com soluções avançadas para otimizar sua presença online.</p>
-                    </div>
-                    <div class='content-box'>
-                        <h3>Pacote Premium</h3>
-                        <p>O pacote definitivo com serviços personalizados e estratégias exclusivas.</p>
-                    </div>
-                `;
-            } else if (name === 'contactos') {
-                title.textContent = "Contactos";
-                description.innerHTML = "<div class='content-box'><p>Entre em contato conosco por email ou telefone.</p></div>";
+            switch (name) {
+                case 'quem-somos':
+                    title.innerText = 'Quem Somos';
+                    description.innerHTML = '<div class="content-box"><p>Na Radiant Reach, acreditamos no poder das conexões autênticas e no impacto do marketing digital de excelência. Somos uma equipe apaixonada por criar histórias cativantes, estratégias impactantes e experiências digitais que transformam marcas. Nosso compromisso é levar o seu negócio ao próximo nível, unindo inovação, criatividade e resultados tangíveis.</p></div>';
+                    break;
+                case 'servicos':
+                    title.innerText = 'Serviços';
+                    description.innerHTML = `
+                        <div class="content-box">
+                            <p>Oferecemos soluções personalizadas que atendem às necessidades únicas de cada cliente. Nossa abordagem combina análise de dados, criatividade e as mais recentes tecnologias para entregar resultados excepcionais.</p>
+                            <ul>
+                                <li><strong>Pacote Essencial:</strong> Criação de perfis em redes sociais, gestão de publicações e engajamento inicial, relatórios mensais com métricas principais.</li>
+                                <li><strong>Pacote Avançado:</strong> Estratégias de marketing de conteúdo, campanhas publicitárias direcionadas, monitoramento em tempo real e análises avançadas.</
+
+                            <li><strong>Pacote Premium:</strong> Consultoria estratégica personalizada, produção de vídeos e conteúdo multimídia, automação de marketing e campanhas em grande escala.</li>
+                        </ul>`;
+                    break;
+                case 'contactos':
+                    title.innerText = 'Contactos';
+                    description.innerHTML = '<div class="content-box"><p>Estamos aqui para transformar sua visão em realidade. Entre em contato conosco e descubra como podemos ajudar sua marca a se destacar no mercado digital.</p><p><strong>E-mail:</strong> contato@radiantreach.com</p><p><strong>Telefone:</strong> +351 123 456 789</p><p><strong>Morada:</strong> Avenida do Futuro, 123, Lisboa, Portugal.</p>';
+                    break;
             }
-
-            modal.style.display = "flex";
         }
 
         function closeModal() {
-            document.getElementById('info-modal').style.display = "none";
+            const modal = document.getElementById('info-modal');
+            modal.style.display = 'none';
         }
 
         function startVoiceSearch() {
             recognition.start();
 
-            const suggestions = document.getElementById('voice-search-suggestions');
-            suggestions.style.display = "block";
-
-            recognition.onresult = function (event) {
+            recognition.onresult = event => {
                 const transcript = event.results[0][0].transcript.toLowerCase();
-                if (transcript.includes("quem somos")) {
-                    displayModal('quem-somos');
-                } else if (transcript.includes("serviços")) {
-                    displayModal('servicos');
-                } else if (transcript.includes("contactos")) {
-                    displayModal('contactos');
-                } else {
-                    alert("Desculpe, não entendi. Tente novamente.");
+                if (transcript.includes('quem somos')) {
+                    showInfo('quem-somos');
+                } else if (transcript.includes('serviços')) {
+                    showInfo('servicos');
+                } else if (transcript.includes('contactos')) {
+                    showInfo('contactos');
                 }
-            };
-
-            recognition.onend = function () {
-                suggestions.style.display = "none";
             };
         }
 
@@ -287,8 +378,7 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        window.onload = init;
+        init();
     </script>
 </body>
 </html>
-
